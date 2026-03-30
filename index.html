@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦉 A Cidade das Palavras</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky-top:#6EC6F5; --sky-bot:#b8e4f9; --ground:#5DBB63;
+  --dark:#2D2A5E; --card:#FFFDF0; --yellow:#FFD166; --pink:#FF6B9D;
+  --purple:#9B59B6; --teal:#06D6A0; --orange:#F4845F; --blue:#4ECDC4;
+  --red:#EF476F; --green:#06D6A0;
+  --ok:#06D6A0; --fail:#EF476F;
+  --facil:#06D6A0; --medio:#FFD166; --dificil:#EF476F;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow-x:hidden;}
+body{font-family:'Nunito',sans-serif;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-bot) 58%,var(--ground) 58%,#4aaa50 100%);min-height:100vh;position:relative;}
+
+/* ---- CLOUDS & SUN ---- */
+.bg-decor{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.cloud{position:absolute;background:#fff;border-radius:50px;opacity:.8;}
+.cloud::before,.cloud::after{content:'';position:absolute;background:#fff;border-radius:50%;}
+.c1{width:110px;height:36px;top:25px;left:6%;animation:drift 20s ease-in-out infinite;}
+.c1::before{width:55px;height:55px;top:-28px;left:12px;}
+.c1::after{width:40px;height:40px;top:-20px;left:52px;}
+.c2{width:80px;height:28px;top:55px;left:32%;animation:drift 26s ease-in-out infinite 4s;}
+.c2::before{width:45px;height:45px;top:-22px;left:8px;}
+.c2::after{width:32px;height:32px;top:-16px;left:40px;}
+.c3{width:130px;height:42px;top:15px;right:8%;animation:drift 22s ease-in-out infinite 2s;}
+.c3::before{width:65px;height:65px;top:-32px;left:18px;}
+.c3::after{width:50px;height:50px;top:-25px;left:65px;}
+.sun{position:absolute;top:18px;right:55px;width:62px;height:62px;background:#FFD700;border-radius:50%;box-shadow:0 0 0 12px rgba(255,215,0,.22),0 0 0 24px rgba(255,215,0,.1);animation:pulse-sun 3s ease-in-out infinite;}
+@keyframes drift{0%,100%{transform:translateX(0)}50%{transform:translateX(25px)}}
+@keyframes pulse-sun{0%,100%{box-shadow:0 0 0 12px rgba(255,215,0,.22),0 0 0 24px rgba(255,215,0,.1)}50%{box-shadow:0 0 0 18px rgba(255,215,0,.28),0 0 0 32px rgba(255,215,0,.14)}}
+
+/* ---- SCREENS ---- */
+.screen{display:none;position:relative;z-index:10;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ======= MENU ======= */
+#screen-menu{align-items:center;justify-content:center;padding:20px 16px 80px;}
+.menu-card{background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border-radius:28px;padding:36px 40px;max-width:480px;width:100%;text-align:center;box-shadow:0 12px 50px rgba(45,42,94,.2);border:3px solid rgba(255,255,255,.8);}
+.menu-title{font-family:'Fredoka One',cursive;font-size:clamp(2rem,6vw,3.2rem);color:var(--dark);line-height:1.1;margin-bottom:6px;}
+.menu-subtitle{font-size:1rem;color:#555;font-weight:700;margin-bottom:24px;}
+.menu-owl{margin:16px 0;animation:float-owl 3s ease-in-out infinite;}
+@keyframes float-owl{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.diff-label{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--dark);margin-bottom:12px;}
+.diff-btns{display:flex;gap:10px;justify-content:center;margin-bottom:28px;}
+.diff-btn{font-family:'Fredoka One',cursive;font-size:1.05rem;padding:10px 22px;border-radius:50px;border:3px solid transparent;cursor:pointer;transition:all .2s;background:#f0f0f0;color:#666;}
+.diff-btn.sel-facil{background:var(--facil);color:#fff;border-color:#04a87c;box-shadow:0 4px 14px rgba(6,214,160,.4);}
+.diff-btn.sel-medio{background:var(--medio);color:#8a6000;border-color:#c9a200;box-shadow:0 4px 14px rgba(255,209,102,.5);}
+.diff-btn.sel-dificil{background:var(--dificil);color:#fff;border-color:#c3183e;box-shadow:0 4px 14px rgba(239,71,111,.4);}
+.play-btn{font-family:'Fredoka One',cursive;font-size:1.5rem;background:linear-gradient(135deg,#FFD166,#FF6B9D);color:#fff;border:none;padding:16px 52px;border-radius:60px;cursor:pointer;box-shadow:0 5px 20px rgba(255,107,157,.4);transition:transform .15s,box-shadow .15s;letter-spacing:.5px;}
+.play-btn:hover{transform:scale(1.06);box-shadow:0 8px 28px rgba(255,107,157,.5);}
+.play-btn:active{transform:scale(1.02);}
+.menu-tip{font-size:.82rem;color:#999;margin-top:18px;}
+
+/* ======= GAME ======= */
+#screen-game{padding:0 0 70px;}
+#topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px 6px;gap:8px;flex-wrap:wrap;}
+.pill{background:rgba(255,255,255,.88);border-radius:30px;padding:6px 16px;font-weight:800;font-size:.92rem;color:var(--dark);box-shadow:0 2px 8px rgba(0,0,0,.13);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.pill span{font-size:1.2rem;}
+#timer-wrap{padding:2px 14px 6px;position:relative;}
+#timer-bar{height:10px;background:rgba(255,255,255,.4);border-radius:10px;overflow:hidden;}
+#timer-fill{height:100%;border-radius:10px;transition:width .25s linear,background .5s;background:var(--teal);width:100%;}
+#card-zone{padding:6px 14px 0;display:flex;flex-direction:column;align-items:center;gap:8px;}
+#instruction{font-family:'Fredoka One',cursive;font-size:clamp(.95rem,2.8vw,1.2rem);color:var(--dark);background:rgba(255,255,255,.82);padding:7px 20px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.1);text-align:center;}
+#text-card{background:var(--card);border-radius:18px;padding:18px 22px;max-width:560px;width:100%;box-shadow:0 6px 24px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.08);border:3px solid #e8e0c8;font-size:clamp(.84rem,2.1vw,1rem);line-height:1.7;color:#333;position:relative;transition:transform .2s,border-color .2s;}
+#text-card::before{content:'📄';position:absolute;top:-18px;right:14px;font-size:1.8rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));}
+#card-title{font-family:'Fredoka One',cursive;color:var(--dark);font-size:1rem;margin-bottom:6px;}
+#card-body{font-size:.92rem;color:#444;line-height:1.65;}
+#text-card.anim-ok{animation:pop-ok .5s ease;border-color:var(--ok);}
+#text-card.anim-fail{animation:shake-no .4s ease;border-color:var(--fail);}
+@keyframes pop-ok{0%{transform:scale(1)}30%{transform:scale(1.04)}70%{transform:scale(.97)}100%{transform:scale(1)}}
+@keyframes shake-no{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+#feedback{font-family:'Fredoka One',cursive;font-size:clamp(1rem,2.8vw,1.25rem);text-align:center;padding:7px 18px;border-radius:30px;transition:opacity .3s;opacity:0;min-height:42px;}
+#feedback.show{opacity:1;}
+#feedback.ok{background:#d4f9ec;color:#06754A;}
+#feedback.no{background:#ffd6de;color:#9c1a34;}
+
+/* ======= CITY ======= */
+#city{display:flex;justify-content:center;align-items:flex-end;gap:clamp(4px,1.5vw,12px);padding:6px 10px 0;flex-wrap:wrap;position:relative;z-index:5;}
+.building{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform .2s,filter .2s,opacity .3s;user-select:none;position:relative;}
+.building:hover{transform:translateY(-10px) scale(1.08);filter:brightness(1.07);}
+.building:active{transform:translateY(-6px) scale(1.04);}
+.building.anim-jump{animation:jump-ok .5s ease;}
+.building.anim-wrong{animation:wiggle .4s ease;}
+.building.dimmed{opacity:.35;pointer-events:none;}
+.building.highlight{opacity:1!important;animation:pulse-build .6s ease;}
+@keyframes jump-ok{0%{transform:translateY(0)}30%{transform:translateY(-22px)}60%{transform:translateY(-8px)}100%{transform:translateY(-10px)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes pulse-build{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.b-label{font-family:'Fredoka One',cursive;font-size:clamp(.62rem,1.6vw,.82rem);color:#fff;background:var(--dark);padding:3px 9px;border-radius:20px;margin-top:4px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.22);}
+svg.bsvg{overflow:visible;}
+
+/* ======= LETRINHA ======= */
+#letrinha-wrap{position:fixed;bottom:74px;right:16px;z-index:100;display:flex;flex-direction:column;align-items:center;animation:float-owl 3s ease-in-out infinite;}
+#letrinha-wrap.happy{animation:owl-happy .5s ease!important;}
+#letrinha-wrap.sad{animation:owl-sad .4s ease!important;}
+@keyframes owl-happy{0%,100%{transform:scale(1)}30%{transform:scale(1.18) rotate(10deg)}70%{transform:scale(.95) rotate(-5deg)}}
+@keyframes owl-sad{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px) rotate(-8deg)}75%{transform:translateX(6px) rotate(8deg)}}
+#speech{background:#fff;border-radius:14px;border:2.5px solid var(--dark);padding:7px 11px;font-size:.75rem;font-weight:800;color:var(--dark);max-width:150px;text-align:center;margin-bottom:7px;line-height:1.4;box-shadow:0 3px 10px rgba(0,0,0,.14);position:relative;}
+#speech::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);border:10px solid transparent;border-top-color:#fff;border-bottom:none;}
+
+/* ======= GRASS ======= */
+#grass{position:fixed;bottom:0;left:0;right:0;height:50px;background:linear-gradient(180deg,#5DBB63 0%,#3d9444 100%);z-index:4;}
+#grass::before{content:'';position:absolute;top:-14px;left:0;right:0;height:22px;background:radial-gradient(ellipse 28px 16px at 14px 16px,#5DBB63 50%,transparent 51%),radial-gradient(ellipse 22px 13px at 42px 16px,#68cc6e 50%,transparent 51%),radial-gradient(ellipse 32px 18px at 76px 18px,#5DBB63 50%,transparent 51%),radial-gradient(ellipse 25px 15px at 110px 17px,#60c467 50%,transparent 51%);background-size:120px 18px;background-repeat:repeat-x;}
+
+/* ======= MODAL EXPLAIN ======= */
+#modal-explain{position:fixed;inset:0;background:rgba(45,42,94,.78);z-index:200;display:none;justify-content:center;align-items:center;padding:16px;}
+#modal-explain.show{display:flex;animation:fade-in .3s ease;}
+@keyframes fade-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+#explain-box{background:#FFFDF0;border-radius:24px;padding:32px 36px;max-width:420px;width:100%;text-align:center;box-shadow:0 14px 54px rgba(0,0,0,.38);}
+.explain-emoji{font-size:3.6rem;display:block;margin-bottom:8px;}
+.explain-genre{font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--dark);margin-bottom:10px;}
+.explain-def{font-size:.96rem;color:#444;line-height:1.65;margin-bottom:8px;}
+.explain-tip{font-size:.88rem;color:#666;background:#f5f0e8;border-radius:12px;padding:8px 14px;margin-bottom:22px;font-style:italic;}
+#next-btn{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(135deg,#FFD166,#FF6B9D);color:#fff;border:none;padding:13px 42px;border-radius:50px;cursor:pointer;box-shadow:0 4px 16px rgba(255,107,157,.4);transition:transform .15s;}
+#next-btn:hover{transform:scale(1.06);}
+.score-badge{display:inline-block;padding:5px 16px;border-radius:30px;font-weight:900;font-size:1rem;margin-bottom:16px;}
+.score-badge.ok-badge{background:#d4f9ec;color:#06754A;}
+.score-badge.fail-badge{background:#ffd6de;color:#9c1a34;}
+
+/* ======= RESULTS ======= */
+#screen-result{align-items:center;justify-content:flex-start;padding:20px 16px 90px;}
+.result-card{background:rgba(255,255,255,.92);border-radius:28px;padding:30px 32px;max-width:520px;width:100%;box-shadow:0 12px 50px rgba(45,42,94,.2);}
+.res-emoji{font-size:4.5rem;display:block;text-align:center;margin-bottom:6px;}
+.res-title{font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--dark);text-align:center;margin-bottom:4px;}
+.res-stars{text-align:center;font-size:2.4rem;margin-bottom:6px;}
+.res-score{text-align:center;font-size:1.1rem;font-weight:900;color:var(--dark);margin-bottom:20px;}
+.chart-title{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--dark);margin-bottom:12px;}
+.genre-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.88rem;font-weight:800;}
+.genre-name{width:90px;color:var(--dark);text-align:right;flex-shrink:0;font-size:.82rem;}
+.bar-bg{flex:1;background:#eee;border-radius:10px;height:16px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:10px;transition:width .8s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;justify-content:flex-end;padding-right:4px;font-size:.65rem;color:#fff;font-weight:900;}
+.bar-fill.ok-bar{background:linear-gradient(90deg,#06D6A0,#04a87c);}
+.bar-fill.fail-bar{background:linear-gradient(90deg,#EF476F,#c3183e);}
+.bar-count{font-size:.8rem;color:#666;flex-shrink:0;width:40px;}
+.res-btns{display:flex;gap:12px;margin-top:24px;justify-content:center;flex-wrap:wrap;}
+.res-btn{font-family:'Fredoka One',cursive;font-size:1.1rem;padding:13px 28px;border-radius:50px;border:none;cursor:pointer;transition:transform .15s;}
+.res-btn:hover{transform:scale(1.05);}
+.btn-primary{background:linear-gradient(135deg,#FFD166,#FF6B9D);color:#fff;box-shadow:0 4px 16px rgba(255,107,157,.4);}
+.btn-teacher{background:linear-gradient(135deg,#4ECDC4,#2196a8);color:#fff;box-shadow:0 4px 16px rgba(78,205,196,.4);}
+
+/* ======= TEACHER MODE ======= */
+#teacher-panel{display:none;margin-top:20px;padding:20px;background:#f8f8f2;border-radius:16px;border:2px dashed #ccc;}
+#teacher-panel.show{display:block;}
+.teacher-title{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--dark);margin-bottom:14px;text-align:center;}
+.teacher-table{width:100%;border-collapse:collapse;font-size:.84rem;}
+.teacher-table th{background:var(--dark);color:#fff;padding:7px 10px;text-align:center;font-family:'Fredoka One',cursive;font-size:.88rem;}
+.teacher-table td{padding:6px 10px;border-bottom:1px solid #e0e0e0;text-align:center;color:#333;font-weight:700;}
+.teacher-table tr:nth-child(even) td{background:#f0f0ea;}
+.teacher-table .ok-cell{color:#06754A;}
+.teacher-table .fail-cell{color:#9c1a34;}
+.print-note{font-size:.75rem;color:#999;text-align:center;margin-top:10px;font-style:italic;}
+
+/* ======= FLYING LETTER ======= */
+.flying-letter{position:fixed;font-size:2rem;pointer-events:none;z-index:300;transition:none;}
+
+/* ======= CONFETTI ======= */
+.confetti{position:fixed;pointer-events:none;z-index:350;border-radius:2px;animation:fall .8s ease-in forwards;}
+@keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(120px) rotate(480deg)}}
+</style>
+</head>
+<body>
+
+<div class="bg-decor">
+  <div class="sun"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+</div>
+
+<!-- ========== MENU ========== -->
+<div class="screen active" id="screen-menu">
+  <div class="menu-card">
+    <div class="menu-title">🏙️ A Cidade<br>das Palavras</div>
+    <p class="menu-subtitle">Ajude a Letrinha a entregar cada texto no lugar certo!</p>
+    <div class="menu-owl">
+      <svg width="90" height="100" viewBox="0 0 80 90"><ellipse cx="40" cy="62" rx="26" ry="28" fill="#F4845F"/><ellipse cx="14" cy="65" rx="12" ry="18" fill="#c96a3c" transform="rotate(-15,14,65)"/><ellipse cx="66" cy="65" rx="12" ry="18" fill="#c96a3c" transform="rotate(15,66,65)"/><ellipse cx="40" cy="68" rx="16" ry="20" fill="#FFDDA1"/><ellipse cx="40" cy="36" rx="22" ry="22" fill="#F4845F"/><polygon points="24,18 20,5 30,14" fill="#c96a3c"/><polygon points="56,18 60,5 50,14" fill="#c96a3c"/><circle cx="30" cy="35" r="10" fill="white"/><circle cx="50" cy="35" r="10" fill="white"/><circle cx="30" cy="35" r="6" fill="#2D2A5E"/><circle cx="50" cy="35" r="6" fill="#2D2A5E"/><circle cx="28" cy="33" r="2" fill="white"/><circle cx="48" cy="33" r="2" fill="white"/><polygon points="40,42 35,46 45,46" fill="#FFD166"/><rect x="22" y="16" width="36" height="5" rx="2" fill="#2D2A5E"/><rect x="32" y="12" width="16" height="7" rx="2" fill="#2D2A5E"/><circle cx="40" cy="11" r="4" fill="#2D2A5E"/><line x1="40" y1="11" x2="52" y2="18" stroke="#FFD166" stroke-width="2"/><circle cx="52" cy="18" r="3" fill="#FFD166"/><rect x="26" y="70" width="28" height="18" rx="3" fill="white" stroke="#c96a3c" stroke-width="1.5"/><line x1="30" y1="76" x2="50" y2="76" stroke="#bbb" stroke-width="1.5"/><line x1="30" y1="81" x2="44" y2="81" stroke="#bbb" stroke-width="1.5"/></svg>
+    </div>
+    <div class="diff-label">Escolha a dificuldade:</div>
+    <div class="diff-btns">
+      <button class="diff-btn sel-facil" onclick="setDiff('facil',this)">🌱 Fácil</button>
+      <button class="diff-btn" onclick="setDiff('medio',this)">🌟 Médio</button>
+      <button class="diff-btn" onclick="setDiff('dificil',this)">🔥 Difícil</button>
+    </div>
+    <button class="play-btn" onclick="startGame()">🦉 JOGAR!</button>
+    <p class="menu-tip">10 rodadas • 10 gêneros textuais</p>
+  </div>
+</div>
+
+<!-- ========== GAME ========== -->
+<div class="screen" id="screen-game">
+  <div id="topbar">
+    <div class="pill"><span>⭐</span> <span id="score-val">0</span> pts</div>
+    <div class="pill"><span>📬</span> <span id="round-val">1</span>/10</div>
+    <div class="pill" id="diff-pill">🌱 Fácil</div>
+  </div>
+  <div id="timer-wrap"><div id="timer-bar"><div id="timer-fill"></div></div></div>
+  <div id="card-zone">
+    <div id="instruction">📖 Que tipo de texto é esse?</div>
+    <div id="text-card"><div class="card-title" id="card-title"></div><div class="card-body" id="card-body"></div></div>
+    <div id="feedback"></div>
+  </div>
+  <!-- CITY -->
+  <div id="city">
+    <div class="building" id="b-poema" data-genre="poema" onclick="guess(this)"><svg class="bsvg" width="72" height="108" viewBox="0 0 90 120"><rect x="10" y="45" width="70" height="75" rx="6" fill="#C0A3E5"/><polygon points="5,45 45,5 85,45" fill="#9B59B6"/><rect x="32" y="88" width="26" height="32" rx="4" fill="#7D3C98"/><rect x="15" y="58" width="22" height="18" rx="3" fill="#E8D5FF"/><rect x="53" y="58" width="22" height="18" rx="3" fill="#E8D5FF"/><text x="45" y="80" text-anchor="middle" font-size="22">🌸</text><rect x="24" y="22" width="42" height="18" rx="4" fill="white" opacity=".85"/><text x="45" y="35" text-anchor="middle" font-size="12" fill="#7D3C98" font-weight="bold">♪♫</text></svg><div class="b-label">🌸 Poema</div></div>
+
+    <div class="building" id="b-receita" data-genre="receita" onclick="guess(this)"><svg class="bsvg" width="72" height="108" viewBox="0 0 85 125"><rect x="8" y="35" width="69" height="90" rx="6" fill="#FFDDA1"/><rect x="5" y="28" width="75" height="14" rx="4" fill="#F4845F"/><rect x="52" y="8" width="14" height="24" rx="4" fill="#F4845F"/><ellipse cx="59" cy="5" rx="5" ry="5" fill="white" opacity=".7"/><ellipse cx="54" cy="0" rx="4" ry="4" fill="white" opacity=".5"/><rect x="29" y="90" width="27" height="35" rx="5" fill="#c96a3c"/><rect x="12" y="50" width="20" height="17" rx="3" fill="#fff5cc"/><rect x="53" y="50" width="20" height="17" rx="3" fill="#fff5cc"/><text x="42" y="82" text-anchor="middle" font-size="22">🍰</text></svg><div class="b-label">🍰 Receita</div></div>
+
+    <div class="building" id="b-bilhete" data-genre="bilhete" onclick="guess(this)"><svg class="bsvg" width="68" height="100" viewBox="0 0 80 110"><rect x="5" y="40" width="70" height="70" rx="6" fill="#4ECDC4"/><polygon points="0,40 40,8 80,40" fill="#06A99B"/><rect x="25" y="78" width="30" height="32" rx="5" fill="#036b65"/><rect x="8" y="52" width="20" height="16" rx="3" fill="#b3eff0"/><rect x="52" y="52" width="20" height="16" rx="3" fill="#b3eff0"/><rect x="26" y="94" width="28" height="5" rx="2" fill="#02534f"/><text x="40" y="74" text-anchor="middle" font-size="20">✉️</text></svg><div class="b-label">✉️ Bilhete</div></div>
+
+    <div class="building" id="b-historia" data-genre="historia" onclick="guess(this)"><svg class="bsvg" width="76" height="118" viewBox="0 0 95 135"><rect x="10" y="40" width="75" height="95" rx="6" fill="#FF6B9D"/><rect x="10" y="30" width="14" height="16" rx="2" fill="#e85590"/><rect x="28" y="30" width="14" height="16" rx="2" fill="#e85590"/><rect x="46" y="30" width="14" height="16" rx="2" fill="#e85590"/><rect x="64" y="30" width="14" height="16" rx="2" fill="#e85590"/><rect x="10" y="40" width="75" height="5" fill="#e85590"/><rect x="32" y="97" width="31" height="38" rx="15" fill="#9c2a5f"/><rect x="13" y="55" width="20" height="22" rx="3" fill="#ffb3d1"/><rect x="62" y="55" width="20" height="22" rx="3" fill="#ffb3d1"/><text x="48" y="90" text-anchor="middle" font-size="22">📖</text><polygon points="48,8 48,28 62,18" fill="#FFD166"/><line x1="48" y1="8" x2="48" y2="30" stroke="#e85590" stroke-width="2.5"/></svg><div class="b-label">📖 História</div></div>
+
+    <div class="building" id="b-noticia" data-genre="noticia" onclick="guess(this)"><svg class="bsvg" width="70" height="110" viewBox="0 0 88 120"><rect x="8" y="20" width="72" height="100" rx="4" fill="#5B8DEF"/><rect x="4" y="14" width="80" height="12" rx="4" fill="#3a6fd4"/><line x1="44" y1="0" x2="44" y2="14" stroke="#3a6fd4" stroke-width="3"/><circle cx="44" cy="0" r="4" fill="#FFD166"/><rect x="14" y="30" width="16" height="12" rx="2" fill="#9ec5ff"/><rect x="36" y="30" width="16" height="12" rx="2" fill="#9ec5ff"/><rect x="58" y="30" width="16" height="12" rx="2" fill="#9ec5ff"/><rect x="14" y="48" width="16" height="12" rx="2" fill="#9ec5ff"/><rect x="36" y="48" width="16" height="12" rx="2" fill="#9ec5ff"/><rect x="58" y="48" width="16" height="12" rx="2" fill="#9ec5ff"/><rect x="14" y="66" width="16" height="12" rx="2" fill="#9ec5ff"/><rect x="36" y="66" width="16" height="12" rx="2" fill="#9ec5ff"/><rect x="58" y="66" width="16" height="12" rx="2" fill="#9ec5ff"/><text x="44" y="100" text-anchor="middle" font-size="20">📰</text><rect x="30" y="100" width="28" height="20" rx="3" fill="#2a4fa0"/></svg><div class="b-label">📰 Notícia</div></div>
+
+    <div class="building" id="b-convite" data-genre="convite" onclick="guess(this)"><svg class="bsvg" width="68" height="106" viewBox="0 0 82 115"><rect x="6" y="42" width="70" height="73" rx="6" fill="#FFD166"/><polygon points="0,44 41,4 82,44" fill="#f5a623"/><path d="M15,28 Q41,18 67,28" stroke="#FF6B9D" stroke-width="2.5" fill="none"/><circle cx="15" cy="28" r="3" fill="#FF6B9D"/><circle cx="41" cy="19" r="3" fill="#9B59B6"/><circle cx="67" cy="28" r="3" fill="#4ECDC4"/><rect x="28" y="83" width="26" height="32" rx="4" fill="#c97f00"/><rect x="10" y="55" width="20" height="18" rx="3" fill="#fff5cc"/><rect x="52" y="55" width="20" height="18" rx="3" fill="#fff5cc"/><text x="41" y="78" text-anchor="middle" font-size="20">🎉</text></svg><div class="b-label">🎉 Convite</div></div>
+
+    <div class="building" id="b-lista" data-genre="lista" onclick="guess(this)"><svg class="bsvg" width="64" height="100" viewBox="0 0 78 108"><rect x="5" y="38" width="68" height="70" rx="6" fill="#06D6A0"/><rect x="0" y="30" width="78" height="16" rx="4" fill="#04a87c"/><rect x="10" y="30" width="6" height="16" fill="#05c290" opacity=".5"/><rect x="26" y="30" width="6" height="16" fill="#05c290" opacity=".5"/><rect x="42" y="30" width="6" height="16" fill="#05c290" opacity=".5"/><rect x="58" y="30" width="6" height="16" fill="#05c290" opacity=".5"/><rect x="25" y="80" width="28" height="28" rx="4" fill="#027a5b"/><rect x="8" y="48" width="20" height="16" rx="3" fill="#b3f0e2"/><rect x="50" y="48" width="20" height="16" rx="3" fill="#b3f0e2"/><text x="39" y="76" text-anchor="middle" font-size="18">📝</text></svg><div class="b-label">📝 Lista</div></div>
+
+    <div class="building" id="b-carta" data-genre="carta" onclick="guess(this)"><svg class="bsvg" width="68" height="108" viewBox="0 0 82 115"><rect x="6" y="40" width="70" height="75" rx="6" fill="#E74C3C"/><polygon points="2,42 41,8 80,42" fill="#c0392b"/><rect x="26" y="88" width="30" height="27" rx="5" fill="#96281B"/><rect x="8" y="54" width="20" height="16" rx="3" fill="#f5b7b1"/><rect x="54" y="54" width="20" height="16" rx="3" fill="#f5b7b1"/><rect x="22" y="78" width="38" height="6" rx="3" fill="#7b1e12"/><text x="41" y="76" text-anchor="middle" font-size="20">📮</text></svg><div class="b-label">📮 Carta</div></div>
+
+    <div class="building" id="b-anuncio" data-genre="anuncio" onclick="guess(this)"><svg class="bsvg" width="72" height="110" viewBox="0 0 86 118"><rect x="6" y="58" width="74" height="60" rx="6" fill="#FF9500"/><rect x="0" y="14" width="86" height="48" rx="8" fill="#FFD166"/><rect x="4" y="18" width="78" height="40" rx="6" fill="white"/><rect x="28" y="58" width="10" height="8" fill="#e08000"/><rect x="48" y="58" width="10" height="8" fill="#e08000"/><rect x="28" y="90" width="30" height="28" rx="4" fill="#c46b00"/><rect x="8" y="68" width="18" height="14" rx="3" fill="#ffd9a0"/><rect x="60" y="68" width="18" height="14" rx="3" fill="#ffd9a0"/><text x="43" y="44" text-anchor="middle" font-size="22">📢</text></svg><div class="b-label">📢 Anúncio</div></div>
+
+    <div class="building" id="b-cardapio" data-genre="cardapio" onclick="guess(this)"><svg class="bsvg" width="70" height="108" viewBox="0 0 84 115"><rect x="6" y="42" width="72" height="73" rx="6" fill="#E8956D"/><rect x="2" y="33" width="80" height="14" rx="5" fill="#c8603a"/><path d="M2,33 Q42,44 82,33" fill="#d47040" opacity=".6"/><rect x="26" y="90" width="32" height="25" rx="5" fill="#964735"/><rect x="8" y="54" width="24" height="20" rx="3" fill="#ffd9c2"/><rect x="52" y="54" width="24" height="20" rx="3" fill="#ffd9c2"/><rect x="14" y="18" width="56" height="16" rx="4" fill="white" opacity=".9"/><text x="42" y="30" text-anchor="middle" font-size="10" fill="#964735" font-weight="bold">RESTAURANTE</text><text x="42" y="82" text-anchor="middle" font-size="20">🍽️</text></svg><div class="b-label">🍽️ Cardápio</div></div>
+  </div>
+
+  <!-- LETRINHA -->
+  <div id="letrinha-wrap">
+    <div id="speech">Qual prédio recebe esse texto? 🤔</div>
+    <svg width="72" height="82" viewBox="0 0 80 90"><ellipse cx="40" cy="62" rx="26" ry="28" fill="#F4845F"/><ellipse cx="14" cy="65" rx="12" ry="18" fill="#c96a3c" transform="rotate(-15,14,65)"/><ellipse cx="66" cy="65" rx="12" ry="18" fill="#c96a3c" transform="rotate(15,66,65)"/><ellipse cx="40" cy="68" rx="16" ry="20" fill="#FFDDA1"/><ellipse cx="40" cy="36" rx="22" ry="22" fill="#F4845F"/><polygon points="24,18 20,5 30,14" fill="#c96a3c"/><polygon points="56,18 60,5 50,14" fill="#c96a3c"/><circle cx="30" cy="35" r="10" fill="white"/><circle cx="50" cy="35" r="10" fill="white"/><circle cx="30" cy="35" r="6" fill="#2D2A5E"/><circle cx="50" cy="35" r="6" fill="#2D2A5E"/><circle cx="28" cy="33" r="2" fill="white"/><circle cx="48" cy="33" r="2" fill="white"/><polygon points="40,42 35,46 45,46" fill="#FFD166"/><rect x="22" y="16" width="36" height="5" rx="2" fill="#2D2A5E"/><rect x="32" y="12" width="16" height="7" rx="2" fill="#2D2A5E"/><circle cx="40" cy="11" r="4" fill="#2D2A5E"/><line x1="40" y1="11" x2="52" y2="18" stroke="#FFD166" stroke-width="2"/><circle cx="52" cy="18" r="3" fill="#FFD166"/></svg>
+  </div>
+</div>
+
+<!-- ========== EXPLAIN MODAL ========== -->
+<div id="modal-explain">
+  <div id="explain-box">
+    <span class="explain-emoji" id="ex-emoji"></span>
+    <div id="ex-score-badge" class="score-badge ok-badge"></div>
+    <div class="explain-genre" id="ex-genre"></div>
+    <p class="explain-def" id="ex-def"></p>
+    <p class="explain-tip" id="ex-tip"></p>
+    <button id="next-btn" onclick="nextQuestion()">Próximo! ➜</button>
+  </div>
+</div>
+
+<!-- ========== RESULTS ========== -->
+<div class="screen" id="screen-result">
+  <div class="result-card">
+    <span class="res-emoji" id="res-emoji"></span>
+    <div class="res-title" id="res-title"></div>
+    <div class="res-stars" id="res-stars"></div>
+    <div class="res-score" id="res-score"></div>
+    <div class="chart-title">📊 Desempenho por gênero:</div>
+    <div id="genre-chart"></div>
+    <div class="res-btns">
+      <button class="res-btn btn-primary" onclick="goMenu()">🏠 Menu</button>
+      <button class="res-btn btn-primary" onclick="restartDirect()">🔄 Jogar de Novo</button>
+      <button class="res-btn btn-teacher" onclick="toggleTeacher()">👩‍🏫 Modo Professor</button>
+    </div>
+    <div id="teacher-panel">
+      <div class="teacher-title">👩‍🏫 Relatório da Turma</div>
+      <table class="teacher-table" id="teacher-table">
+        <thead><tr><th>Gênero</th><th>✅ Acertou</th><th>❌ Errou</th><th>% Aproveit.</th></tr></thead>
+        <tbody id="teacher-body"></tbody>
+      </table>
+      <p class="print-note">💡 Use Ctrl+P para imprimir este relatório</p>
+    </div>
+  </div>
+</div>
+
+<div id="grass"></div>
+
+<script>
+// ==============================
+// DATA
+// ==============================
+const GENRES = {
+  poema:    { label:'Poema',    emoji:'🌸', color:'#9B59B6', def:'O poema é um texto literário com versos e estrofes. Usa linguagem musical para expressar sentimentos e emoções.', tip:'💡 Dica: procure versos curtos e uso de rimas!' },
+  receita:  { label:'Receita',  emoji:'🍰', color:'#F4845F', def:'A receita é um texto instrucional que ensina como preparar um alimento. Tem lista de ingredientes e modo de preparo.', tip:'💡 Dica: ingredientes + passo a passo = receita!' },
+  bilhete:  { label:'Bilhete',  emoji:'✉️', color:'#06A99B', def:'O bilhete é uma mensagem curta e informal entre pessoas conhecidas. É direto, breve e pessoal.', tip:'💡 Dica: texto curto, pessoal, com "querido(a)" ou assinatura!' },
+  historia: { label:'História', emoji:'📖', color:'#FF6B9D', def:'A história ou conto é um texto narrativo com personagens, cenário e uma sequência de acontecimentos (início, meio e fim).', tip:'💡 Dica: "Era uma vez..." e personagens são pistas de história!' },
+  noticia:  { label:'Notícia',  emoji:'📰', color:'#3a6fd4', def:'A notícia é um texto jornalístico que informa sobre fatos reais e recentes. Responde: o que, quem, quando, onde e por quê.', tip:'💡 Dica: fatos reais, datas e nomes de lugares = notícia!' },
+  convite:  { label:'Convite',  emoji:'🎉', color:'#f5a623', def:'O convite é um texto que chama alguém para participar de um evento. Informa data, hora, local e motivo da celebração.', tip:'💡 Dica: "Venha!", data e endereço são marcas do convite!' },
+  lista:    { label:'Lista',    emoji:'📝', color:'#04a87c', def:'A lista é um texto simples que enumera itens ou tarefas. Os elementos são organizados um abaixo do outro.', tip:'💡 Dica: itens separados, sem frases longas = lista!' },
+  carta:    { label:'Carta',    emoji:'📮', color:'#E74C3C', def:'A carta é um texto que comunica pensamentos, sentimentos ou informações a uma pessoa distante. Tem cabeçalho, corpo e assinatura.', tip:'💡 Dica: "Prezado(a)..." e assinatura formal = carta!' },
+  anuncio:  { label:'Anúncio',  emoji:'📢', color:'#FF9500', def:'O anúncio é um texto publicitário que divulga algo — produto, serviço ou evento. Usa linguagem chamativa para atrair atenção.', tip:'💡 Dica: preços, promoções e frases de impacto = anúncio!' },
+  cardapio: { label:'Cardápio', emoji:'🍽️', color:'#c8603a', def:'O cardápio é um texto informativo que lista as opções de comidas e bebidas de um restaurante ou cantina, geralmente com preços.', tip:'💡 Dica: lista de pratos com nome e preço = cardápio!' },
+};
+
+const ALL_QUESTIONS = [
+  // POEMA
+  { genre:'poema', title:'A Chuva', body:`<div style="text-align:center;font-style:italic">A chuva cai devagar,<br>molhando o jardim florido.<br>Que cheiro bom de molhar!<br>Parece que o sol foi embora escondido.<br><br><small>— Poema popular</small></div>` },
+  { genre:'poema', title:'O Vento', body:`<div style="text-align:center;font-style:italic">O vento passa por aqui<br>e leva flores pelo ar.<br>Ele sopra, faz o pinho<br>dançar, dançar, dançar...<br><br><small>— Poema popular</small></div>` },
+  { genre:'poema', title:'Meu Amigo', body:`<div style="text-align:center;font-style:italic">Meu amigo é especial,<br>sempre está do meu lado.<br>Na tristeza e no carnaval,<br>o sorriso é garantido.<br><br><small>— Poema popular</small></div>` },
+  // RECEITA
+  { genre:'receita', title:'Bolo de Chocolate da Vovó', body:`<b>Ingredientes:</b><br>• 2 ovos &nbsp;• 1 xícara de farinha de trigo<br>• ½ xícara de chocolate em pó &nbsp;• 1 xícara de açúcar<br><br><b>Modo de preparo:</b><br>Misture todos os ingredientes. Leve ao forno por 35 minutos a 180°C.` },
+  { genre:'receita', title:'Suco de Laranja Gelado', body:`<b>Ingredientes:</b><br>• 4 laranjas &nbsp;• 1 copo de água gelada<br>• 2 colheres de açúcar &nbsp;• Gelo a gosto<br><br><b>Modo de preparo:</b><br>Esprema as laranjas. Misture o suco com a água, o açúcar e o gelo. Sirva bem gelado! 🍊` },
+  // BILHETE
+  { genre:'bilhete', title:'', body:`<i>Mamãe,</i><br><br>Fui brincar na casa da Ana. A gente vai fazer o dever de casa juntas.<br>Chego antes do jantar!<br><br><i>Beijos, Luíza 💕</i>` },
+  { genre:'bilhete', title:'', body:`<i>Professor Carlos,</i><br><br>Meu filho Pedro não poderá vir à escola hoje porque está com febre. Ele voltará amanhã com o atestado médico.<br><br><i>Att., Mãe do Pedro</i>` },
+  { genre:'bilhete', title:'', body:`<i>Tomás,</i><br><br>Peguei seu lápis emprestado durante a aula de artes. Devolvo amanhã! Obrigado mesmo 😊<br><br><i>— Davi</i>` },
+  // HISTORIA
+  { genre:'historia', title:'A Princesa e o Dragão', body:`Era uma vez uma princesa corajosa que morava num castelo na floresta encantada.<br><br>Certo dia, um dragão apareceu e bloqueou o caminho da aldeia. Mas a princesa não teve medo — ela pegou seu livro mágico e...` },
+  { genre:'historia', title:'O Coelho e a Tartaruga', body:`Numa floresta distante, um coelho muito veloz vivia se gabando para todos os animais:<br><br>— <i>Ninguém corre mais do que eu!</i><br><br>Foi então que a tartaruga, calma e determinada, disse: — <i>Vamos apostar uma corrida?</i>` },
+  { genre:'historia', title:'O Menino e a Estrelinha', body:`Numa noite fria, um menino chamado Miguel olhou para o céu estrelado e fez um pedido especial.<br><br>De repente, uma estrela piscou três vezes e... caiu mansinho, bem na palma da sua mão!` },
+  // NOTICIA
+  { genre:'noticia', title:'🐕 Cachorro herói salva criança', body:`<b>São Paulo, ontem</b> — Um cachorro chamado Bidu se tornou herói em seu bairro. O animal latiu muito alto quando percebeu que uma criança havia caído num riacho perto de casa.<br><br>Os moradores ouviram o aviso e conseguiram salvar a menina a tempo.` },
+  { genre:'noticia', title:'🌱 Escola cria horta comunitária', body:`<b>Curitiba, terça-feira</b> — Alunos da Escola Municipal Dom Bosco inauguraram uma horta no pátio da escola. O projeto foi idealizado por crianças do 3º ano.<br><br>As famílias ajudaram no plantio e poderão levar legumes e ervas frescas para casa.` },
+  // CONVITE
+  { genre:'convite', title:'🎈 Você está Convidado!', body:`Venha comemorar o aniversário de 8 anos da <b>Sofia</b>!<br><br>📅 <b>Data:</b> Sábado, 15 de junho &nbsp;&nbsp; 🕓 <b>Hora:</b> 16h<br>📍 <b>Local:</b> Rua das Flores, 42<br><br><i>Confirme sua presença até dia 10. Te esperamos! 🎂</i>` },
+  { genre:'convite', title:'🎭 Peça de Teatro da Escola', body:`A turma do 3º B convida você para assistir à nossa peça de teatro:<br><br>🎬 <b>"O Rei Leão da Floresta"</b><br>📅 <b>Dia:</b> Sexta-feira, 20h<br>🏫 <b>Local:</b> Auditório da escola<br><br><i>Entrada gratuita. Vagas limitadas!</i>` },
+  // LISTA
+  { genre:'lista', title:'Lista de Compras', body:`☐ Leite (1 litro)<br>☐ Pão de forma<br>☐ Ovos (uma dúzia)<br>☐ Manteiga<br>☐ Maçãs<br>☐ Arroz (2 kg)<br>☐ Feijão preto` },
+  { genre:'lista', title:'Material Escolar', body:`✏️ Lápis de cor (12 cores)<br>📏 Régua de 30 cm<br>📐 Esquadro<br>✂️ Tesoura sem ponta<br>🗂️ Fichário com divisórias<br>📒 Caderno de 200 folhas<br>🖊️ Caneta azul e preta` },
+  // CARTA
+  { genre:'carta', title:'', body:`<div style="text-align:right;font-size:.82rem;color:#888">São Paulo, 10 de maio de 2025</div><br><i>Querida avó,</i><br><br>Escrevo para contar que estou com muita saudade das suas visitas. A escola está ótima e aprendi a ler muito mais rápido!<br><br>Espero que venha nos visitar nas férias de julho.<br><br><i>Com muito amor,<br>Beatriz 💛</i>` },
+  { genre:'carta', title:'', body:`<div style="text-align:right;font-size:.82rem;color:#888">Recife, 3 de março de 2025</div><br><i>Prezado Diretor,</i><br><br>Venho por meio desta solicitar uma reunião para tratar do projeto de leitura que nossa turma gostaria de implantar na biblioteca escolar.<br><br><i>Atenciosamente,<br>Professora Renata</i>` },
+  // ANUNCIO
+  { genre:'anuncio', title:'', body:`<div style="text-align:center"><b style="font-size:1.2rem;color:#E67E00">🍦 SORVETERIA GELINHO</b><br><br>🌟 <b>OFERTA IMPERDÍVEL!</b> 🌟<br><br>Compre 2 casquinhas e ganhe a 3ª de graça!<br><br>⏰ Somente este fim de semana!<br>📍 Rua do Sol, 100 — das 12h às 22h</div>` },
+  { genre:'anuncio', title:'', body:`<div style="text-align:center"><b style="font-size:1.1rem;color:#c46b00">🐾 PET SHOP FOFO</b><br><br>Banho e tosa a partir de <b>R$45,00</b>!<br><br>✅ Tosa artística &nbsp;&nbsp; ✅ Vacinas<br>✅ Consulta veterinária &nbsp;&nbsp; ✅ Ração<br><br>📞 (11) 9999-0001 &nbsp;|&nbsp; Aberto todos os dias</div>` },
+  // CARDAPIO
+  { genre:'cardapio', title:'🍽️ Restaurante da Praça', body:`<b>Prato do dia — R$22,90</b><br>Arroz, feijão, frango grelhado, salada e suco<br><br><b>Lanches:</b><br>X-Burguer &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; R$18,00<br>Misto-quente &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; R$9,00<br><br><b>Sobremesas:</b><br>Pudim &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; R$7,00<br>Sorvete (2 bolas) &nbsp; R$8,00` },
+  { genre:'cardapio', title:'☕ Cantina da Escola', body:`<b>Lanches salgados:</b><br>🥪 Sanduíche natural &nbsp; R$6,00<br>🧆 Coxinha &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; R$4,00<br>🥐 Croissant &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; R$5,50<br><br><b>Bebidas:</b><br>🧃 Suco de caixinha &nbsp; R$3,00<br>🥛 Achocolatado &nbsp;&nbsp;&nbsp;&nbsp; R$4,50<br>💧 Água mineral &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; R$2,50` },
+];
+
+// ==============================
+// AUDIO
+// ==============================
+let audioCtx = null;
+function getAudio(){ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function tone(f,d,type='sine',v=0.28,del=0){
+  try{
+    const a=getAudio(),o=a.createOscillator(),g=a.createGain();
+    o.connect(g);g.connect(a.destination);
+    o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(v,a.currentTime+del);
+    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+del+d);
+    o.start(a.currentTime+del);o.stop(a.currentTime+del+d+.05);
+  }catch(e){}
+}
+function playOk(){tone(523,.12,'sine',.3,0);tone(659,.12,'sine',.3,.1);tone(784,.18,'sine',.3,.2);tone(1047,.35,'sine',.24,.34);}
+function playFail(){tone(220,.1,'square',.2,0);tone(165,.3,'square',.15,.12);}
+function playTick(){tone(880,.06,'square',.12,0);}
+function playFanfare(){[523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,.15,'sine',.22,i*.1));}
+function playTimerWarn(){tone(1200,.05,'square',.12,0);}
+
+// ==============================
+// STATE
+// ==============================
+const DIFF = {
+  facil:   { time:35, label:'🌱 Fácil',   pill:'diff-facil' },
+  medio:   { time:22, label:'🌟 Médio',   pill:'diff-medio' },
+  dificil: { time:12, label:'🔥 Difícil', pill:'diff-dificil' },
+};
+let state = {
+  diff: 'facil',
+  questions: [],
+  idx: 0,
+  score: 0,
+  timeLeft: 0,
+  timerInterval: null,
+  answered: false,
+  results: {},   // genre → {correct, wrong}
+  sessionAnswers: [],
+};
+
+// ==============================
+// MENU
+// ==============================
+function setDiff(d, btn) {
+  state.diff = d;
+  document.querySelectorAll('.diff-btn').forEach(b=>{b.className='diff-btn';});
+  btn.classList.add('sel-'+d);
+}
+
+function goMenu() {
+  clearInterval(state.timerInterval);
+  showScreen('screen-menu');
+}
+
+// ==============================
+// BUILD QUESTION SET
+// ==============================
+function buildQuestions() {
+  const genres = Object.keys(GENRES);
+  const byGenre = {};
+  genres.forEach(g=>{ byGenre[g]=[]; });
+  ALL_QUESTIONS.forEach(q=>{ byGenre[q.genre].push(q); });
+  // shuffle each genre pool
+  genres.forEach(g=>shuffle(byGenre[g]));
+  // pick 1 guaranteed per genre (10 total = 10 rounds)
+  const result = genres.map(g=>byGenre[g][0]);
+  shuffle(result);
+  return result;
+}
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+// ==============================
+// START GAME
+// ==============================
+function startGame() {
+  state.questions = buildQuestions();
+  state.idx = 0;
+  state.score = 0;
+  state.answered = false;
+  state.results = {};
+  state.sessionAnswers = [];
+  Object.keys(GENRES).forEach(g=>{ state.results[g]={correct:0,wrong:0,total:0}; });
+  document.getElementById('score-val').textContent='0';
+  const d = DIFF[state.diff];
+  document.getElementById('diff-pill').textContent=d.label;
+  showScreen('screen-game');
+  loadQ();
+}
+
+function restartDirect(){ startGame(); }
+
+// ==============================
+// LOAD QUESTION
+// ==============================
+function loadQ() {
+  state.answered = false;
+  clearInterval(state.timerInterval);
+  const q = state.questions[state.idx];
+  document.getElementById('card-title').innerHTML = q.title || '';
+  document.getElementById('card-body').innerHTML = q.body;
+  document.getElementById('round-val').textContent = state.idx + 1;
+  document.getElementById('feedback').className = '';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('text-card').className = '';
+  // reset buildings
+  document.querySelectorAll('.building').forEach(b=>{
+    b.classList.remove('dimmed','anim-jump','anim-wrong','highlight');
+    b.style.pointerEvents='auto';
+  });
+  // Letrinha speech
+  const speeches = ['Qual prédio recebe esse texto? 🤔','Leia com atenção! 🧐','Você consegue! 💪','Olhe as pistas! 🔍','Cada texto tem um lar! 🏠','Pense bem... 🤔','Boa leitura! 📚','Confio em você! 🦉'];
+  document.getElementById('speech').textContent = speeches[state.idx % speeches.length];
+  startTimer();
+}
+
+// ==============================
+// TIMER
+// ==============================
+function startTimer(){
+  state.timeLeft = DIFF[state.diff].time;
+  updateTimerBar(1);
+  let warned = false;
+  state.timerInterval = setInterval(()=>{
+    state.timeLeft--;
+    const pct = state.timeLeft / DIFF[state.diff].time;
+    updateTimerBar(pct);
+    if(state.timeLeft <= 5 && !warned){ warned=true; }
+    if(state.timeLeft <= 5){ playTimerWarn(); }
+    if(state.timeLeft <= 0){
+      clearInterval(state.timerInterval);
+      if(!state.answered) timeOut();
+    }
+  },1000);
+}
+
+function updateTimerBar(pct){
+  const fill = document.getElementById('timer-fill');
+  fill.style.width = (pct*100)+'%';
+  if(pct > .5) fill.style.background='var(--teal)';
+  else if(pct > .25) fill.style.background='#FFD166';
+  else fill.style.background='var(--red)';
+}
+
+function timeOut(){
+  if(state.answered) return;
+  state.answered=true;
+  playFail();
+  const correct=state.questions[state.idx].genre;
+  state.results[correct].wrong++;
+  state.results[correct].total++;
+  state.sessionAnswers.push({genre:correct,correct:false});
+  showFeedback(false,'⏰ Tempo esgotado! Era: '+GENRES[correct].label+' '+GENRES[correct].emoji);
+  document.getElementById('text-card').classList.add('anim-fail');
+  document.getElementById('letrinha-wrap').className='';
+  document.getElementById('letrinha-wrap').offsetWidth;
+  document.getElementById('letrinha-wrap').classList.add('sad');
+  document.getElementById('speech').textContent='Ooops! O tempo acabou! 😬';
+  dimBuildings(correct);
+  setTimeout(()=>showExplain(correct, false), 1400);
+}
+
+// ==============================
+// GUESS
+// ==============================
+function guess(el){
+  if(state.answered) return;
+  state.answered=true;
+  clearInterval(state.timerInterval);
+  getAudio(); // unlock audio on first interaction
+  const picked=el.dataset.genre;
+  const correct=state.questions[state.idx].genre;
+  const isOk=picked===correct;
+  state.results[correct].total++;
+  if(isOk){
+    state.results[correct].correct++;
+    state.score+=10;
+    document.getElementById('score-val').textContent=state.score;
+    playOk();
+    el.classList.add('anim-jump');
+    document.getElementById('text-card').classList.add('anim-ok');
+    showFeedback(true,'🎉 Muito bem! +10 pontos!');
+    document.getElementById('speech').textContent='🎊 Parabéns! Entregue!';
+    document.getElementById('letrinha-wrap').className='';
+    document.getElementById('letrinha-wrap').offsetWidth;
+    document.getElementById('letrinha-wrap').classList.add('happy');
+    spawnConfetti();
+    flyLetter(el);
+  } else {
+    state.results[correct].wrong++;
+    playFail();
+    el.classList.add('anim-wrong');
+    document.getElementById('text-card').classList.add('anim-fail');
+    showFeedback(false,'😅 Ops! Era '+GENRES[correct].label+' '+GENRES[correct].emoji);
+    document.getElementById('speech').textContent='Quase! Era '+GENRES[correct].label+'!';
+    document.getElementById('letrinha-wrap').className='';
+    document.getElementById('letrinha-wrap').offsetWidth;
+    document.getElementById('letrinha-wrap').classList.add('sad');
+  }
+  state.sessionAnswers.push({genre:correct,correct:isOk});
+  dimBuildings(correct);
+  if(!isOk) document.getElementById('b-'+correct).classList.add('highlight');
+  setTimeout(()=>showExplain(correct, isOk), isOk?1300:1600);
+}
+
+function dimBuildings(keep){
+  document.querySelectorAll('.building').forEach(b=>{
+    b.style.pointerEvents='none';
+    if(b.dataset.genre!==keep) b.classList.add('dimmed');
+  });
+}
+
+function showFeedback(ok,msg){
+  const el=document.getElementById('feedback');
+  el.textContent=msg;
+  el.className='show '+(ok?'ok':'no');
+}
+
+// ==============================
+// FLYING LETTER
+// ==============================
+function flyLetter(targetEl){
+  const card=document.getElementById('text-card');
+  const cr=card.getBoundingClientRect();
+  const tr=targetEl.getBoundingClientRect();
+  const ltr=document.createElement('div');
+  ltr.className='flying-letter';
+  ltr.textContent='📄';
+  ltr.style.left=(cr.left+cr.width/2-16)+'px';
+  ltr.style.top=(cr.top+cr.height/2-16)+'px';
+  ltr.style.fontSize='2rem';
+  document.body.appendChild(ltr);
+  setTimeout(()=>{
+    ltr.style.transition='all .65s cubic-bezier(.34,1.56,.64,1)';
+    ltr.style.left=(tr.left+tr.width/2-16)+'px';
+    ltr.style.top=(tr.top-20)+'px';
+    ltr.style.opacity='0';
+    ltr.style.transform='scale(.3) rotate(20deg)';
+  },60);
+  setTimeout(()=>ltr.remove(),900);
+}
+
+// ==============================
+// CONFETTI
+// ==============================
+function spawnConfetti(){
+  const colors=['#FFD166','#FF6B9D','#06D6A0','#9B59B6','#4ECDC4','#F4845F'];
+  const card=document.getElementById('text-card').getBoundingClientRect();
+  for(let i=0;i<22;i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.style.cssText=`
+      left:${card.left+Math.random()*card.width}px;
+      top:${card.top+card.height*.3}px;
+      width:${6+Math.random()*8}px;
+      height:${6+Math.random()*8}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay:${Math.random()*.3}s;
+      animation-duration:${.6+Math.random()*.5}s;
+      transform:translateX(${-40+Math.random()*80}px);
+    `;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),1100);
+  }
+}
+
+// ==============================
+// EXPLAIN MODAL
+// ==============================
+function showExplain(genre, wasOk){
+  const g=GENRES[genre];
+  document.getElementById('ex-emoji').textContent=g.emoji;
+  document.getElementById('ex-genre').textContent=g.label;
+  document.getElementById('ex-def').textContent=g.def;
+  document.getElementById('ex-tip').textContent=g.tip;
+  const badge=document.getElementById('ex-score-badge');
+  if(wasOk){ badge.textContent='✅ Você acertou! +10 pontos'; badge.className='score-badge ok-badge'; }
+  else { badge.textContent='❌ Não foi dessa vez...'; badge.className='score-badge fail-badge'; }
+  document.getElementById('modal-explain').classList.add('show');
+  document.getElementById('modal-explain').style.display='flex';
+}
+
+function nextQuestion(){
+  document.getElementById('modal-explain').classList.remove('show');
+  document.getElementById('modal-explain').style.display='none';
+  state.idx++;
+  if(state.idx >= state.questions.length){ showResults(); }
+  else { loadQ(); }
+}
+
+// ==============================
+// RESULTS
+// ==============================
+function showResults(){
+  playFanfare();
+  clearInterval(state.timerInterval);
+  const pct=state.score/100;
+  let emoji,title,stars,msg;
+  if(pct>=.9){emoji='🏆';title='Incrível!';stars='⭐⭐⭐';msg='Você é um expert em gêneros textuais!';}
+  else if(pct>=.7){emoji='🎉';title='Muito bem!';stars='⭐⭐⭐';msg='Você conhece muito bem os textos!';}
+  else if(pct>=.5){emoji='😊';title='Bom trabalho!';stars='⭐⭐';msg='Você está aprendendo muito!';}
+  else{emoji='💪';title='Continue tentando!';stars='⭐';msg='A leitura é um superpoder — pratique!';}
+  document.getElementById('res-emoji').textContent=emoji;
+  document.getElementById('res-title').textContent=title;
+  document.getElementById('res-stars').textContent=stars;
+  document.getElementById('res-score').innerHTML=`Pontuação: <b>${state.score}</b>/100 &nbsp;|&nbsp; ${msg}`;
+  // Build chart
+  const chart=document.getElementById('genre-chart');
+  chart.innerHTML='';
+  Object.entries(GENRES).forEach(([key,g])=>{
+    const r=state.results[key]||{correct:0,wrong:0,total:0};
+    if(!r.total) return;
+    const row=document.createElement('div');
+    row.className='genre-bar';
+    const correctPct=r.total?Math.round(r.correct/r.total*100):0;
+    row.innerHTML=`
+      <div class="genre-name">${g.emoji} ${g.label}</div>
+      <div class="bar-bg"><div class="bar-fill ${r.correct>0?'ok-bar':'fail-bar'}" style="width:0%" data-w="${correctPct}%">${r.correct>0?'✓':''}</div></div>
+      <div class="bar-count">${r.correct}/${r.total}</div>`;
+    chart.appendChild(row);
+  });
+  // Teacher table
+  const tbody=document.getElementById('teacher-body');
+  tbody.innerHTML='';
+  Object.entries(GENRES).forEach(([key,g])=>{
+    const r=state.results[key]||{correct:0,wrong:0,total:0};
+    if(!r.total) return;
+    const pctR=r.total?Math.round(r.correct/r.total*100):0;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${g.emoji} ${g.label}</td><td class="ok-cell">${r.correct}</td><td class="fail-cell">${r.wrong}</td><td>${pctR}%</td>`;
+    tbody.appendChild(tr);
+  });
+  showScreen('screen-result');
+  // Animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.bar-fill').forEach(b=>{b.style.width=b.dataset.w;});
+  },300);
+}
+
+function toggleTeacher(){
+  const p=document.getElementById('teacher-panel');
+  p.classList.toggle('show');
+}
+
+// ==============================
+// SCREEN MANAGEMENT
+// ==============================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// init default difficulty highlight
+document.querySelector('.diff-btn').classList.add('sel-facil');
+</script>
+</body>
+</html>
